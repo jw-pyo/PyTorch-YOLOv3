@@ -135,7 +135,6 @@ class YOLOLayer(nn.Module):
         h = prediction[..., 3]  # Height
         pred_conf = torch.sigmoid(prediction[..., 4])  # Conf
         pred_cls = torch.sigmoid(prediction[..., 5:])  # Cls pred.
-
         # Calculate offsets for each grid
         grid_x = torch.arange(nG).repeat(nG, 1).view([1, 1, nG, nG]).type(FloatTensor)
         grid_y = torch.arange(nG).repeat(nG, 1).t().view([1, 1, nG, nG]).type(FloatTensor)
@@ -155,7 +154,7 @@ class YOLOLayer(nn.Module):
 
             if x.is_cuda:
                 self.mse_loss = self.mse_loss.cuda()
-                self.bce_loss = self.bce_loss.cuda()
+                self.bce_loss = self.bce_loss.cuda() # binary cross entropy
                 self.ce_loss = self.ce_loss.cuda()
 
             nGT, nCorrect, mask, conf_mask, tx, ty, tw, th, tconf, tcls = build_targets(
@@ -282,7 +281,6 @@ class Darknet(nn.Module):
         self.seen = header[3]
         weights = np.fromfile(fp, dtype=np.float32)  # The rest are weights
         fp.close()
-
         ptr = 0
         for i, (module_def, module) in enumerate(zip(self.module_defs, self.module_list)):
             if module_def["type"] == "convolutional":
@@ -318,6 +316,7 @@ class Darknet(nn.Module):
                 conv_w = torch.from_numpy(weights[ptr : ptr + num_w]).view_as(conv_layer.weight)
                 conv_layer.weight.data.copy_(conv_w)
                 ptr += num_w
+            import pdb; pdb.set_trace()
 
     """
         @:param path    - path of the new weights file
